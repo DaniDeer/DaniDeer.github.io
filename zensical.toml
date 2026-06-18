@@ -1,0 +1,10 @@
+[project]
+name = "Daniel Hirsch - Software Engineering Lessons, Patterns, and Practical Guidance from the Trenches of a Legacy Manufacturer"
+site_name = "Daniel Hirsch - Software Engineering Lessons, Patterns, and Practical Guidance from the Trenches of a Legacy Manufacturer"
+site_url = "https://danideer.github.io/"
+description = "Lessons, patterns, and practical guidance from the trenches of software engineer working in the (legacy) manufacturing domain."
+repo_url = "https://github.com/DaniDeer/DaniDeer.github.io"
+repo_name = "DaniDeer/DaniDeer.github.io"
+
+[nav]
+"Home" = "README.md"
