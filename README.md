@@ -16,4 +16,4 @@ Welcome to my blog, and I hope you find it insightful and helpful in your own so
 
 ---
 
-&copy; 2026 Daniel Hirsch &bull; [MIT License](https://gh.io/mit)
+&copy; 2026 Daniel Hirsch &bull; [MIT License](https://gh.io/mit) &bull; Made with [Zensical](https://zensical.org/docs/get-started/)
