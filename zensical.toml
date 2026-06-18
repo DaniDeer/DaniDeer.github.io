@@ -10,8 +10,6 @@ repo_name = "DaniDeer/DaniDeer.github.io"
 
 # Zensical Docu: https://zensical.org/docs/setup/basics/
 [project.theme]
-palette.primary = "deep orange"
-palette.accent = "deep orange"
 # Text font
 font.text = "Inter"
 # Monospaced font
@@ -32,6 +30,8 @@ toggle.name = "Switch to light mode"
 [[project.theme.palette]]
 media = "(prefers-color-scheme: light)"
 scheme = "default"
+primary = "deep orange"
+accent = "deep orange"
 toggle.icon = "lucide/sun"
 toggle.name = "Switch to dark mode"
 
@@ -39,6 +39,8 @@ toggle.name = "Switch to dark mode"
 [[project.theme.palette]]
 media = "(prefers-color-scheme: dark)"
 scheme = "slate"
+primary = "deep orange"
+accent = "deep orange"
 toggle.icon = "lucide/moon"
 toggle.name = "Switch to light mode"
 
