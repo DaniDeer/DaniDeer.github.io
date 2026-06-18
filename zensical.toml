@@ -45,4 +45,4 @@ toggle.icon = "lucide/moon"
 toggle.name = "Switch to light mode"
 
 [nav]
-"Home" = "README.md"
+"Home" = "index.md"
