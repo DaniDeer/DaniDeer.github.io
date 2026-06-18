@@ -1,10 +1,46 @@
 [project]
-name = "Daniel Hirsch - Software Engineering Lessons, Patterns, and Practical Guidance from the Trenches of a Legacy Manufacturer"
-site_name = "Daniel Hirsch - Software Engineering Lessons, Patterns, and Practical Guidance from the Trenches of a Legacy Manufacturer"
+name = "Software Engineering Lessons, Patterns, and Practical Guidance from the Trenches of a Legacy Manufacturer"
+site_author = "Daniel Hirsch"
+copyright = "&copy; 2026 Daniel Hirsch"
+site_name = "Software Engineering Lessons, Patterns, and Practical Guidance from the Trenches of a Legacy Manufacturer"
 site_url = "https://danideer.github.io/"
 description = "Lessons, patterns, and practical guidance from the trenches of software engineer working in the (legacy) manufacturing domain."
 repo_url = "https://github.com/DaniDeer/DaniDeer.github.io"
 repo_name = "DaniDeer/DaniDeer.github.io"
+
+# Zensical Docu: https://zensical.org/docs/setup/basics/
+[project.theme]
+palette.primary = "deep orange"
+palette.accent = "deep orange"
+# Text font
+font.text = "Inter"
+# Monospaced font
+font.code = "Fira Code"
+
+# Logo icon
+[project.theme.icon]
+logo = "lucide/code"
+repo = "fontawesome/brands/github"
+
+# Palette toggle for automatic mode
+[[project.theme.palette]]
+media = "(prefers-color-scheme)"
+toggle.icon = "lucide/sun-moon"
+toggle.name = "Switch to light mode"
+
+# Palette toggle for light mode
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+# Palette toggle for dark mode
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
 
 [nav]
 "Home" = "README.md"
