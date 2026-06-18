@@ -10,6 +10,8 @@ repo_name = "DaniDeer/DaniDeer.github.io"
 
 # Zensical Docu: https://zensical.org/docs/setup/basics/
 [project.theme]
+# Favicon
+favicon = "images/lucide-terminal.png"
 # Text font
 font.text = "Inter"
 # Monospaced font
