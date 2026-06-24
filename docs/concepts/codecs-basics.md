@@ -30,7 +30,8 @@ Usually it starts like this (because it is just a small PoC - which basically me
     }
     ```
 
-2. You use the idiomatic way of your ecosystem to encode/decode the data, e.g. in Go you would use the builtin [`encoding/json` package](https://pkg.go.dev/encoding/json) with `struct tags`:
+2. You use the idiomatic way of your ecosystem to encode/decode the data, e.g. in Go you would use the builtin [`encoding/json` package][enc] with `struct tags`:
+[enc]: https://pkg.go.dev/encoding/json
 
     ```go
     func decodeUser(data []byte) (User, error) {
