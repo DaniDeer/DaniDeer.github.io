@@ -32,8 +32,8 @@ Usually it starts like this (because it is just a small PoC - which basically me
 
 2. You use the idiomatic way of your ecosystem to encode/decode the data, e.g. in Go you would use the builtin [`encoding/json` package][enc] with `struct tags`:
 
-  [enc]: https://pkg.go.dev/encoding/json
-
+    [enc]: https://pkg.go.dev/encoding/json
+    
     ```go
     func decodeUser(data []byte) (User, error) {
         var u User
@@ -43,17 +43,17 @@ Usually it starts like this (because it is just a small PoC - which basically me
 
 3. You write validation logic somewhere in your codebase to ensure that the data you decode is valid and meets the requirements of your more or less defined domain model:
 
-   ```go
-   func validateUser(u User) error {
-       if u.Name == "" {
-           return errors.New("name: must not be empty")
-       }
-       if u.Age <= 0 {
-           return errors.New("age: must be positive")
-       }
-       return nil
-   }
-   ```
+    ```go
+    func validateUser(u User) error {
+        if u.Name == "" {
+            return errors.New("name: must not be empty")
+        }
+        if u.Age <= 0 {
+            return errors.New("age: must be positive")
+        }
+        return nil
+    }
+    ```
 
 This is only one data object and a simple example, but for your PoC you define a couple of them scattered around your codebase and you may write validation logic for the _same_ fields or even data objects in different places multiple times. And you have to make sure to call the validation logic every time you decode data, otherwise you might end up with invalid data in your system that can cause all sorts of problems down the line (e.g. bugs, security vulnerabilities, etc.).
 
@@ -242,10 +242,10 @@ var UserInputCodec = codec.Struct[User](
     codec.RequiredField("age", codec.Int().Refine(validate.PositiveInt)),
     codec.RequiredField("password", codec.String().Refine(validate.NonEmptyString)),
   )
-  var UserOutputCodec = codec.Struct[User](
-    codec.RequiredField("name", codec.String().Refine(validate.NonEmptyString)),
-    codec.RequiredField("age", codec.Int().Refine(validate.PositiveInt)),
-  )
+var UserOutputCodec = codec.Struct[User](
+  codec.RequiredField("name", codec.String().Refine(validate.NonEmptyString)),
+  codec.RequiredField("age", codec.Int().Refine(validate.PositiveInt)),
+)
 ```
 
 ### Codec Composition
