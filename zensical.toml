@@ -93,3 +93,6 @@ custom_checkbox = true
 
 [nav]
 "Home" = "index.md"
+
+[nav.Concepts]
+"The Why and How of using Codecs (and why it matters for data integrity and maintainability)" = "concepts/codecs-basics.md"
