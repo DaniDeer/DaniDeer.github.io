@@ -23,15 +23,14 @@ Usually it starts like this (because it is just a small PoC - which basically me
 
 1. Define some struct that represents the data you want to encode/decode.
 
-   ```go
-   type User struct {
-       Name string `json:"name"` // struct tags for encoding/decoding
-       Age  int    `json:"age"`
-   }
-   ```
+    ```go
+    type User struct {
+        Name string `json:"name"` // struct tags for encoding/decoding
+        Age  int    `json:"age"`
+    }
+    ```
 
-2. You use the idiomatic way of your ecosystem to encode/decode the data, e.g. in Go you would use the builtin [`encoding/json` package][enc] with `struct tags`:
-[enc]: https://pkg.go.dev/encoding/json
+2. You use the idiomatic way of your ecosystem to encode/decode the data, e.g. in Go you would use the builtin [`encoding/json` package](https://pkg.go.dev/encoding/json) with `struct tags`:
 
     ```go
     func decodeUser(data []byte) (User, error) {
