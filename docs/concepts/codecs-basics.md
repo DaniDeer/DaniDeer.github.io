@@ -153,42 +153,45 @@ In `GO` the workflow for a codec could look like this:
     reading, err := SensorReadingCodec.Decode(data) // data is []byte from the wire (e.g. JSON)
     ```
 
-3. _Bonus_: Derive a schema for the data model (e.g. JSON schema):
+3. _Bonus_: Derive a schema for the data model (e.g. YAML schema):
 
     ```go
     schemaYAML, _ := yaml.Marshal(SensorReadingCodec.Schema)
-    // e.g:
-    // 
-    // type: object
-    //
-    //  required:
-    //    - part_number
-    //    - timestamp
-    //    - temperature
-    //
-    //  properties:
-    //    part_number:
-    //      type: string
-    //      minLength: 1
-    //      description: Unique production part number
-    //
-    //    timestamp:
-    //      type: string
-    //      format: date-time
-    //      description: Timestamp of the reading
-    //
-    //    temperature:
-    //      type: number
-    //      minimum: -40
-    //      maximum: 200
-    //      description: Temperature in °C
-    //
-    //    result:
-    //      type: string
-    //      enum:
-    //        - OK
-    //        - NOK
-    //      description: Result of the reading
+    ```
+
+    Which yields to the following schema in YAML (or if using JSON in JSON) format:
+
+    ```YAML
+    type: object
+    
+      required:
+        - part_number
+        - timestamp
+        - temperature
+    
+      properties:
+        part_number:
+          type: string
+          minLength: 1
+          description: Unique production part number
+    
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the reading
+    
+        temperature:
+          type: number
+          minimum: -40
+          maximum: 200
+          description: Temperature in °C
+    
+        result:
+          type: string
+          enum:
+            - OK
+            - NOK
+          description: Result of the reading
     ```
 
 With this approach, now you are able to change e.g. `PartNumber` to `PartID` and you only have to change `codec.RequiredField("part_id", codec.String().Refine(validate.NonEmptyString)),`. Or you want to make `result` required and/or add more constraints to the range. The struct tag, the validator, and the schema all update automatically - nothing to forget.
