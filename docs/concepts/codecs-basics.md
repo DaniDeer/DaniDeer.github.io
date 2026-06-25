@@ -1,7 +1,7 @@
 ---
 title: The Why and How of using Codecs (and why it matters for data integrity and maintainability)
-published: 2026-06-18
-updated: 2026-06-18
+published: 2026-06-24
+updated: 2026-06-25
 icon: lucide/code
 tags:
   - Codecs
