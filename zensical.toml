@@ -90,6 +90,7 @@ combine_header_slug = true
 custom_checkbox = true
 [project.markdown_extensions.pymdownx.tilde]
 
+[project.markdown_extensions.zensical.extensions.macros]
 
 [nav]
 "Home" = "index.md"
