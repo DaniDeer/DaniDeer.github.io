@@ -24,9 +24,10 @@ Usually it starts like this (because it is just a small PoC - which basically me
 1. Define some struct that represents the data you want to encode/decode.
 
     ```go
-    type User struct {
-        Name string `json:"name"` // struct tags for encoding/decoding
-        Age  int    `json:"age"`
+    type SensorReading struct {
+      PartNumber string
+      Timestamp time.Time
+      Temperature float64
     }
     ```
 
@@ -34,23 +35,25 @@ Usually it starts like this (because it is just a small PoC - which basically me
 [enc]: https://pkg.go.dev/encoding/json
 
     ```go
-    func decodeUser(data []byte) (User, error) {
-        var u User
-        return u, json.Unmarshal(data, &u) // no validation
+    func decodeReading(data []byte) (SensorReading, error) {
+      var u SensorReading
+      return u, json.Unmarshal(data, &u) // no validation
     }
     ```
 
 3. You write validation logic somewhere in your codebase to ensure that the data you decode is valid and meets the requirements of your more or less defined domain model:
 
     ```go
-    func validateUser(u User) error {
-        if u.Name == "" {
-            return errors.New("name: must not be empty")
-        }
-        if u.Age <= 0 {
-            return errors.New("age: must be positive")
-        }
-        return nil
+    func validateReading(r SensorReading) error {
+      if r.PartNumber == "" {
+        return errors.New("part_number: required")
+      }
+
+      if r.Temperature < -40 || r.Temperature > 200 {
+        return errors.New("temperature: out of range")
+      }
+
+      return nil
     }
     ```
 
@@ -128,52 +131,67 @@ In `GO` the workflow for a codec could look like this:
 1. Define a data model and its validation rules in one place:
 
     ```go
-    type User struct {
-        Name string
-        Age  int
-        EyeColor string
+    type SensorReading struct {
+      PartNumber string
+      Timestamp time.Time
+      Temperature float64
+      Result string
     }
 
-    var UserCodec = codec.Struct[User](
-      codec.RequiredField("name", codec.String().Refine(validate.NonEmptyString)),
-      codec.RequiredField("age", codec.Int().Refine(validate.PositiveInt)),
-      codec.OptionalField("eye_color", codec.String().Refine(validate.Enum("blue", "green", "brown"))),
+    var SensorReadingCodec = codec.Struct[SensorReading](
+      codec.RequiredField("part_number", codec.String().Refine(validate.NonEmptyString)),
+      codec.RequiredField("timestamp", codec.Time()),
+      codec.RequiredField("temperature", codec.Float().Refine(validate.RangeFloat(-40, 200))),
+      codec.OptionalField("result", codec.String().Refine(validate.Enum("OK", "NOK"))),
     )
     ```
 
 2. Encode/Decode and validate in one step:
 
     ```go
-    data, err := UserCodec.Encode(user) // user is a User struct
-    user, err := UserCodec.Decode(data) // data is []byte from the wire (e.g. JSON)
+    data, err := SensorReadingCodec.Encode(reading) // reading is a SensorReading struct
+    reading, err := SensorReadingCodec.Decode(data) // data is []byte from the wire (e.g. JSON)
     ```
 
 3. _Bonus_: Derive a schema for the data model (e.g. JSON schema):
 
     ```go
-    schemaJSON, _ := json.MarshalIndent(UserCodec.Schema, "", "  ")
+    schemaYAML, _ := yaml.Marshal(SensorReadingCodec.Schema)
     // e.g:
-    // {
-    //   "type": "object",
-    //   "properties": {
-    //     "name": {
-    //       "type": "string",
-    //       "validation": "non-empty"
-    //     },
-    //     "age": {
-    //       "type": "integer",
-    //       "validation": "positive"
-    //     },
-    //     "eye_color": {
-    //       "type": "string",
-    //       "validation": "enum: blue, green, brown"
-    //     }
-    //   },
-    //   "required": ["name", "age"]
-    // }
+    // 
+    // type: object
+    //
+    //  required:
+    //    - part_number
+    //    - timestamp
+    //    - temperature
+    //
+    //  properties:
+    //    part_number:
+    //      type: string
+    //      minLength: 1
+    //      description: Unique production part number
+    //
+    //    timestamp:
+    //      type: string
+    //      format: date-time
+    //      description: Timestamp of the reading
+    //
+    //    temperature:
+    //      type: number
+    //      minimum: -40
+    //      maximum: 200
+    //      description: Temperature in °C
+    //
+    //    result:
+    //      type: string
+    //      enum:
+    //        - OK
+    //        - NOK
+    //      description: Result of the reading
     ```
 
-With this approach, now you are able to change e.g. `Name` to `DisplayName` and you only have to change `codec.RequiredField("display_name", codec.String().Refine(validate.NonEmptyString)),`. Or you want to make `EyeColor` required and/or add more colors to the enum. The struct tag, the validator, and the schema all update automatically - nothing to forget.
+With this approach, now you are able to change e.g. `PartNumber` to `PartID` and you only have to change `codec.RequiredField("part_id", codec.String().Refine(validate.NonEmptyString)),`. Or you want to make `result` required and/or add more constraints to the range. The struct tag, the validator, and the schema all update automatically - nothing to forget.
 
 ### But... Why not just use `JSON schema` or `OpenAPI`?
 
@@ -224,58 +242,101 @@ With a codec, you can use the `Validate` method to validate data without encodin
 
 ```go
   // Validate — explicit round-trip check
-  if err := UserCodec.Validate(u); err != nil {
-      return fmt.Errorf("constructed invalid user: %w", err)
+  if err := SensorReadingCodec.Validate(u); err != nil {
+      return fmt.Errorf("constructed invalid sensor reading: %w", err)
   }
 ```
 
 ### Multiple Codecs for the same data model
 
-In some cases, you might have different representations of the same data model for different use cases, e.g. a `User` struct that has a `Password` field that you want to encode/decode when receiving data from the wire, but you don't want to include it when encoding data to send to other services or when storing it in a database.
+In some cases, you might have different representations of the same data model for different use cases, e.g. a `SensorReading` struct that has an optional `Result` field that you want to encode/decode when receiving data from the wire. But you when you send data to another service, you want to make the `Result` field required and just let `ÒK` or `NOK` pass as valid predicates.
 
 With codecs, you can define multiple codecs for the same data model with different fields and validation rules:
 
 ```go
-var UserInputCodec = codec.Struct[User](
-    codec.RequiredField("name", codec.String().Refine(validate.NonEmptyString)),
-    codec.RequiredField("age", codec.Int().Refine(validate.PositiveInt)),
-    codec.RequiredField("password", codec.String().Refine(validate.NonEmptyString)),
-  )
-var UserOutputCodec = codec.Struct[User](
-  codec.RequiredField("name", codec.String().Refine(validate.NonEmptyString)),
-  codec.RequiredField("age", codec.Int().Refine(validate.PositiveInt)),
+var PartNumberCodec = codec.String().Refine(validate.NonEmptyString)
+var TemperatureRangeCodec = codec.Float().Refine(validate.RangeFloat(-40, 200))
+var ResultCodec = codec.String().Refine(validate.Enum("OK", "NOK"))
+
+// Sesnor reading from machine to service, result is optional
+var SensorReadingCodec = codec.Struct[SensorReading](
+  codec.RequiredField("part_number", PartNumberCodec),
+  codec.RequiredField("timestamp", codec.Time()),
+  codec.RequiredField("temperature", TemperatureRangeCodec),
+  codec.OptionalField("result", codec.String().Refine(validate.Enum("OK", "NOK", "UNKNOWN"))),
+)
+
+// Service evaluates the reading and returns a quality result, result is required
+var SensorReadingQualityCodec = codec.Struct[SensorReading](
+  codec.RequiredField("part_number", PartNumberCodec),
+  codec.RequiredField("timestamp", codec.Time()),
+  codec.RequiredField("temperature", TemperatureRangeCodec),
+  codec.RequiredField("result", ResultCodec),
 )
 ```
 
 ### Codec Composition
 
-You can compose codecs to create more complex data models from simpler ones, e.g. you have a `User` codec and you want to create a `Group` codec that has a list of users:
+You can compose codecs to create more complex data models from simpler ones, e.g. you have a `SensorReading` codec and you want to create a `BatchReading` codec that has a list of sensor readings:
 
 ```go
-type Group struct {
-    Name string
-    Users []User
+type BatchReading struct {
+  MachineID string
+  Readings []SensorReading
 }
 
-var GroupCodec = codec.Struct[Group](
-    codec.RequiredField("name", codec.String().Refine(validate.NonEmptyString)),
-    codec.RequiredField("users", codec.List(UserCodec)), 
+var BatchReadingCodec = codec.Struct[BatchReading](
+  codec.RequiredField("machine_id", codec.String().Refine(validate.NonEmptyString)),
+  codec.RequiredField("readings", codec.List(SensorReadingCodec)), 
 )
 ```
 
 ### Codec Inheritance
 
-You can also create new codecs that inherit from existing ones and add or override fields and validation rules, e.g. you have a `User` codec and you want to create an `AdminUser` codec that has an additional `Role` field:
+You can also create new codecs that inherit from existing ones and add or override fields and validation rules, e.g. you have a `MachineEvent` codec and you want to create a `QualityInspectionEvent` codec that has an additional `Result` field:
 
 ```go
-type AdminUser struct {
-    User // embed User struct to inherit its fields and validation rules
-    Role string
+// Base event:
+type MachineEvent struct {
+  MachineID  string
+  PartNumber string
+  Timestamp  time.Time
 }
 
-var AdminUserCodec = codec.Struct[AdminUser](
-    codec.RequiredField("role", codec.String().Refine(validate.NonEmptyString)),
-).Inherit(UserCodec) // inherit fields and validation rules from UserCodec
+var MachineEventCodec = codec.Struct[MachineEvent](
+  codec.RequiredField("machine_id", codec.String().Refine(validate.NonEmptyString)),
+  codec.RequiredField("part_number", codec.String().Refine(validate.NonEmptyString)),
+  codec.RequiredField("timestamp", codec.Time()),
+)
+
+// Specialized quality event:
+type QualityInspectionEvent struct {
+  MachineEvent // inherit common fields
+
+  Result string
+}
+
+var QualityInspectionEventCodec = codec.Struct[QualityInspectionEvent](
+  codec.RequiredField("result", codec.String().Refine(validate.Enum("OK", "NOK"))),
+).Inherit(MachineEventCodec)
+
+// Specialized scrap event:
+type ScrapEvent struct {
+  MachineEvent // inherit common fields
+
+  ScrapReason string
+}
+
+var ScrapReasonCodec = codec.String().Refine(validate.Enum(
+    "DIMENSION_OUT_OF_TOLERANCE",
+    "SURFACE_DEFECT",
+    "MATERIAL_FAILURE",
+  ),
+)
+
+var ScrapEventCodec = codec.Struct[ScrapEvent](
+  codec.RequiredField("scrap_reason", ScrapReasonCodec),
+).Inherit(ProductionEventCodec)
 ```
 
 ### Builtin Metrics, Logging, and Tracing
