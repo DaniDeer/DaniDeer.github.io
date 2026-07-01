@@ -1,7 +1,7 @@
 ---
 title: The Why and How of using Codecs (and why it matters for data integrity and maintainability)
 published: 2026-06-24
-updated: 2026-06-25
+updated: 2026-07-01
 icon: lucide/code
 tags:
   - Codecs
@@ -19,15 +19,15 @@ When writing software that interacts with external systems, we often encode and 
 
 ## The Problem
 
-Usually it starts like this (because it is just a small PoC - which basically means it is PROD and you are the owner/responsible for it for the next 10+ years):
+Usually it starts like this (because it is just a small PoC):
 
 1. Define some struct that represents the data you want to encode/decode.
 
     ```go
     type SensorReading struct {
-      PartNumber string
-      Timestamp time.Time
-      Temperature float64
+      PartNumber  string    `json:"part_number"`
+      Timestamp   time.Time `json:"timestamp"`
+      Temperature float64   `json:"temperature"`
     }
     ```
 
@@ -59,7 +59,7 @@ Usually it starts like this (because it is just a small PoC - which basically me
 
 This is only one data object and a simple example, but for your PoC you define a couple of them scattered around your codebase and you may write validation logic for the _same_ fields or even data objects in different places multiple times. And you have to make sure to call the validation logic every time you decode data, otherwise you might end up with invalid data in your system that can cause all sorts of problems down the line (e.g. bugs, security vulnerabilities, etc.).
 
-Of course I assume you are a very accurate and disciplined software engineer and have some architecture or pattern to deal with this, otherwise you might end up with a lot of duplicated, scattered code that is hard to maintain. And since your service is a PoC, which we already know is PROD the moment you show your solution to management, this service will evolve over time and you will add more data models or change existing ones and you will have to change the validation logic for them as well.
+Of course I assume you are a very accurate and disciplined software engineer and have some architecture or pattern to deal with this, otherwise you might end up with a lot of duplicated, scattered code that is hard to maintain. And since your service is a PoC (which we all know is PROD the moment you show your solution to management and the next moment you are the owner/maintainer of this project for the next 10+ years), this service will evolve over time and you will add more data models or change existing ones and you will have to change the validation logic for them as well.
 
 In the moment another team asks, if there is an `OpenAPI`/`AsyncAPI` spec for API, you create a backlog item to add it, but you never get around to do it, because you have to work on the next feature or bug fix. So consuming your API is a pain for other teams. And even if you write the spec by hand, you add another layer of maintenance you have to consider when making changes.
 
@@ -119,7 +119,7 @@ Codec
     
     The standard response from a legacy manufacturer when these topics come up: We write down central directives and define business roles and responsibilities, before we even know how we can technically implement this, or if we are even capable of implementing this with our current systems and landscape and expertise. 
     
-    Another pattern is to work around the root cause: We have a data quality problem, but we don´t fix it at the data source (our machines), and hope we can fix it somewhere in a Data Lake/Warehouse."
+    Another pattern is to work around the root cause: We have a data quality problem, but we don´t fix it at the data source (our machines), and hope we can fix it somewhere in a Data Lake/Warehouse.
 
     This entire section could be an article in its own right, but in my blog I’d actually like to focus on what really matters at the end of the day: working software patterns in software solutions. So I started to research and experiment and write even my own codec library in Go [go-codex][go-codex]. Currently in a very early stage, and just a PoC, but you already knwo what _PoC_ means...
 
